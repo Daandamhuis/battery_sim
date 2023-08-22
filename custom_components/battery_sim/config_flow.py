@@ -13,6 +13,8 @@ from .const import (
     CONF_BATTERY_SIZE,
     CONF_BATTERY_MAX_DISCHARGE_RATE,
     CONF_BATTERY_MAX_CHARGE_RATE,
+    CONF_BATTERY_MAX_DISCHARGE_PERC,
+    CONF_BATTERY_MAX_CHARGE_PERC,
     CONF_BATTERY_EFFICIENCY,
     CONF_UNIQUE_NAME,
     CONF_IMPORT_SENSOR,
@@ -39,8 +41,10 @@ _LOGGER = logging.getLogger(__name__)
 @config_entries.HANDLERS.register(DOMAIN)
 class ExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Example config flow."""
-
     VERSION = 1
+
+    def __init__(self):
+        self._data = None
 
     async def async_step_user(self, user_input):
         """Handle a flow initialized by the user."""
@@ -60,12 +64,14 @@ class ExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required(BATTERY_TYPE): vol.In(battery_options_names),
+                    vol.Required(BATTERY_TYPE):
+                        vol.In(battery_options_names),
                 }
             ),
         )
 
     async def async_step_custom(self, user_input=None):
+        """Initialize Custom Battery."""
         if user_input is not None:
             self._data = user_input
             self._data[SETUP_TYPE] = CONFIG_FLOW
@@ -78,15 +84,20 @@ class ExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="custom",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_UNIQUE_NAME): vol.All(str),
-                    vol.Required(CONF_BATTERY_SIZE): vol.All(vol.Coerce(float)),
+                    vol.Required(CONF_UNIQUE_NAME):
+                        vol.All(str),
+                    vol.Required(CONF_BATTERY_SIZE):
+                        vol.All(vol.Coerce(float)),
                     vol.Required(CONF_BATTERY_MAX_DISCHARGE_RATE): vol.All(
                         vol.Coerce(float)
                     ),
                     vol.Required(CONF_BATTERY_MAX_CHARGE_RATE): vol.All(
                         vol.Coerce(float)
                     ),
-                    vol.Required(CONF_BATTERY_EFFICIENCY, default=0.9): vol.All(
+                    vol.Required(
+                        CONF_BATTERY_EFFICIENCY,
+                        default=0.9
+                    ): vol.All(
                         vol.Coerce(float), vol.Range(min=0, max=1)
                     ),
                 }
@@ -122,69 +133,71 @@ class ExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_connectsensors(self, user_input=None):
+        """Connect Grid sensors."""
         if user_input is not None:
             self._data[CONF_IMPORT_SENSOR] = user_input[CONF_IMPORT_SENSOR]
             self._data[CONF_EXPORT_SENSOR] = user_input[CONF_EXPORT_SENSOR]
-            if self._data[METER_TYPE] == TWO_IMPORT_ONE_EXPORT_METER:
+
+            if self._data[METER_TYPE] in [
+                TWO_IMPORT_ONE_EXPORT_METER,
+                TWO_IMPORT_TWO_EXPORT_METER
+            ]:
                 self._data[CONF_SECOND_IMPORT_SENSOR] = user_input[
                     CONF_SECOND_IMPORT_SENSOR
                 ]
+
             if self._data[METER_TYPE] == TWO_IMPORT_TWO_EXPORT_METER:
-                self._data[CONF_SECOND_IMPORT_SENSOR] = user_input[
-                    CONF_SECOND_IMPORT_SENSOR
-                ]
                 self._data[CONF_SECOND_EXPORT_SENSOR] = user_input[
                     CONF_SECOND_EXPORT_SENSOR
                 ]
+
             if self._data[TARIFF_TYPE] == NO_TARIFF_INFO:
                 return self.async_create_entry(
                     title=self._data["name"], data=self._data
                 )
+
             else:
                 return await self.async_step_connecttariffsensors()
 
-        if self._data[METER_TYPE] == ONE_IMPORT_ONE_EXPORT_METER:
-            schema = {
-                vol.Required(CONF_IMPORT_SENSOR): EntitySelector(
+        schema: dict = {}
+
+        # NOTE: Assumption that you'll always have the primary one.
+        schema[vol.Required(CONF_IMPORT_SENSOR)] = (
+            EntitySelector(
+                EntitySelectorConfig(device_class=SensorDeviceClass.ENERGY)
+            )
+        )
+
+        schema[vol.Required(CONF_EXPORT_SENSOR)] = (
+            EntitySelector(
+                EntitySelectorConfig(device_class=SensorDeviceClass.ENERGY)
+            )
+        )
+
+        if self._data[METER_TYPE] in [
+            TWO_IMPORT_ONE_EXPORT_METER,
+            TWO_IMPORT_TWO_EXPORT_METER
+        ]:
+            schema[vol.Required(CONF_SECOND_IMPORT_SENSOR)] = (
+                EntitySelector(
                     EntitySelectorConfig(device_class=SensorDeviceClass.ENERGY)
-                ),
-                vol.Required(CONF_EXPORT_SENSOR): EntitySelector(
+                )
+            )
+
+        if self._data[METER_TYPE] == TWO_IMPORT_TWO_EXPORT_METER:
+            schema[vol.Required(CONF_SECOND_EXPORT_SENSOR)] = (
+                EntitySelector(
                     EntitySelectorConfig(device_class=SensorDeviceClass.ENERGY)
-                ),
-            }
-        elif self._data[METER_TYPE] == TWO_IMPORT_ONE_EXPORT_METER:
-            schema = {
-                vol.Required(CONF_IMPORT_SENSOR): EntitySelector(
-                    EntitySelectorConfig(device_class=SensorDeviceClass.ENERGY)
-                ),
-                vol.Required(CONF_SECOND_IMPORT_SENSOR): EntitySelector(
-                    EntitySelectorConfig(device_class=SensorDeviceClass.ENERGY)
-                ),
-                vol.Required(CONF_EXPORT_SENSOR): EntitySelector(
-                    EntitySelectorConfig(device_class=SensorDeviceClass.ENERGY)
-                ),
-            }
-        elif self._data[METER_TYPE] == TWO_IMPORT_TWO_EXPORT_METER:
-            schema = {
-                vol.Required(CONF_IMPORT_SENSOR): EntitySelector(
-                    EntitySelectorConfig(device_class=SensorDeviceClass.ENERGY)
-                ),
-                vol.Required(CONF_SECOND_IMPORT_SENSOR): EntitySelector(
-                    EntitySelectorConfig(device_class=SensorDeviceClass.ENERGY)
-                ),
-                vol.Required(CONF_EXPORT_SENSOR): EntitySelector(
-                    EntitySelectorConfig(device_class=SensorDeviceClass.ENERGY)
-                ),
-                vol.Required(CONF_SECOND_EXPORT_SENSOR): EntitySelector(
-                    EntitySelectorConfig(device_class=SensorDeviceClass.ENERGY)
-                ),
-            }
+                )
+            )
 
         return self.async_show_form(
-            step_id="connectsensors", data_schema=vol.Schema(schema)
+            step_id="connectsensors",
+            data_schema=vol.Schema(schema)
         )
 
     async def async_step_connecttariffsensors(self, user_input=None):
+        """Setup Tariff Sensors."""
         if user_input is not None:
             self._data[CONF_ENERGY_IMPORT_TARIFF] = user_input[
                 CONF_ENERGY_IMPORT_TARIFF
@@ -218,4 +231,33 @@ class ExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="connecttariffsensors", data_schema=vol.Schema(schema)
+        )
+
+    async def async_step_charge_parameters(self, user_input=None):
+        """Change Charge limits for the battery."""
+        if user_input is not None:
+            return self.async_create_entry(
+                title=self._data["name"],
+                data=self._data
+            )
+
+        #TODO: Set as configuration screen.
+        schema: dict = {
+            vol.Required(
+                CONF_BATTERY_MAX_DISCHARGE_PERC,
+                default=0.0
+            ): vol.All(
+                vol.Coerce(float), vol.Range(min=0, max=1)
+            ),
+            vol.Required(
+                CONF_BATTERY_MAX_CHARGE_PERC,
+                default=1.0
+            ): vol.All(
+                vol.Coerce(float), vol.Range(min=0, max=1)
+            ),
+        }
+
+        return self.async_show_form(
+            step_id="connectchargeparamaters",
+            data_schema=vol.Schema(schema),
         )

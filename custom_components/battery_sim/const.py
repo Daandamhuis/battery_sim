@@ -23,6 +23,10 @@ CONF_SECOND_IMPORT_SENSOR = "second_import_sensor"
 CONF_EXPORT_SENSOR = "export_sensor"
 CONF_SECOND_EXPORT_SENSOR = "second_export_sensor"
 CONF_BATTERY_SIZE = "size_kwh"
+
+CONF_BATTERY_MAX_DISCHARGE_PERC = "max_discharge_percentage"
+CONF_BATTERY_MAX_CHARGE_PERC = "max_charge_percentage"
+
 CONF_BATTERY_MAX_DISCHARGE_RATE = "max_discharge_rate_kw"
 CONF_BATTERY_MAX_CHARGE_RATE = "max_charge_rate_kw"
 CONF_BATTERY_EFFICIENCY = "efficiency"
