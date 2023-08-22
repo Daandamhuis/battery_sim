@@ -52,6 +52,14 @@
           "energy_export_tariff": "Export tariff/rate - payment for energy exported to grid (£/kWh)"
         },
         "description": "Currency is determined in home assistant location settings and is usually in base unit (e.g. euro) not subunit (e.g. cents) so tariff is usualy in the form 0.33 or similar."
+      },
+      "chargeparameters": {
+        "title": "You can alter the Charge parameters for Max Charge and Dischardge in Percetages",
+        "data": {
+          "max_discharge_percentage": "The maximum percentage that the battery can be discharged before importing from the grid. (default = 0%)",
+          "max_charge_percentage": "The maximum percentage that the battery can be charged before returning back to the grid. (default = 100%)"
+        },
+        "description": "The value you enter is in percentages, so 0.9 =  90%"
       }
     }
   }

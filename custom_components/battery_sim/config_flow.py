@@ -48,14 +48,16 @@ class ExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input):
         """Handle a flow initialized by the user."""
-        if user_input is not None:
+        if user_input is not None:  # User Selected a Battery Option
             if user_input[BATTERY_TYPE] == "Custom":
                 return await self.async_step_custom()
 
+            # Register Battery Option
             self._data = BATTERY_OPTIONS[user_input[BATTERY_TYPE]]
             self._data[SETUP_TYPE] = CONFIG_FLOW
             self._data[CONF_NAME] = f"{DOMAIN}: { user_input[BATTERY_TYPE]}"
             await self.async_set_unique_id(self._data[CONF_NAME])
+
             self._abort_if_unique_id_configured()
             return await self.async_step_metertype()
 
@@ -152,10 +154,7 @@ class ExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ]
 
             if self._data[TARIFF_TYPE] == NO_TARIFF_INFO:
-                return self.async_create_entry(
-                    title=self._data["name"], data=self._data
-                )
-
+                return await self.async_step_chargeparameters()
             else:
                 return await self.async_step_connecttariffsensors()
 
@@ -206,10 +205,8 @@ class ExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self._data[CONF_ENERGY_EXPORT_TARIFF] = user_input[
                     CONF_ENERGY_EXPORT_TARIFF
                 ]
-            return self.async_create_entry(
-                title=self._data["name"],
-                data=self._data
-            )
+            return await self.async_step_chargeparameters()
+
         if self._data[TARIFF_TYPE] == TARIFF_SENSOR_ENTITIES:
             schema = {
                 vol.Required(CONF_ENERGY_IMPORT_TARIFF): EntitySelector(
@@ -233,7 +230,7 @@ class ExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="connecttariffsensors", data_schema=vol.Schema(schema)
         )
 
-    async def async_step_charge_parameters(self, user_input=None):
+    async def async_step_chargeparameters(self, user_input=None):
         """Change Charge limits for the battery."""
         if user_input is not None:
             return self.async_create_entry(
@@ -241,7 +238,6 @@ class ExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 data=self._data
             )
 
-        #TODO: Set as configuration screen.
         schema: dict = {
             vol.Required(
                 CONF_BATTERY_MAX_DISCHARGE_PERC,
@@ -258,6 +254,6 @@ class ExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         }
 
         return self.async_show_form(
-            step_id="connectchargeparamaters",
+            step_id="chargeparameters",
             data_schema=vol.Schema(schema),
         )
