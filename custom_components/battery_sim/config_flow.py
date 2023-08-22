@@ -61,13 +61,12 @@ class ExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._abort_if_unique_id_configured()
             return await self.async_step_metertype()
 
-        battery_options_names = list(BATTERY_OPTIONS)
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
                     vol.Required(BATTERY_TYPE):
-                        vol.In(battery_options_names),
+                        vol.In(list(BATTERY_OPTIONS)),
                 }
             ),
         )
@@ -238,22 +237,22 @@ class ExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 data=self._data
             )
 
-        schema: dict = {
-            vol.Required(
-                CONF_BATTERY_MAX_DISCHARGE_PERC,
-                default=0.0
-            ): vol.All(
-                vol.Coerce(float), vol.Range(min=0, max=1)
-            ),
-            vol.Required(
-                CONF_BATTERY_MAX_CHARGE_PERC,
-                default=1.0
-            ): vol.All(
-                vol.Coerce(float), vol.Range(min=0, max=1)
-            ),
-        }
-
         return self.async_show_form(
             step_id="chargeparameters",
-            data_schema=vol.Schema(schema),
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_BATTERY_MAX_DISCHARGE_PERC,
+                        default=0.0
+                    ): vol.All(
+                        vol.Coerce(float), vol.Range(min=0, max=1)
+                    ),
+                    vol.Required(
+                        CONF_BATTERY_MAX_CHARGE_PERC,
+                        default=1.0
+                    ): vol.All(
+                        vol.Coerce(float), vol.Range(min=0, max=1)
+                    ),
+                }
+            ),
         )
