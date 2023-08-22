@@ -405,6 +405,13 @@ class SimulatedBatteryHandle:
             # Incorrect Setup or Sensors are not ready
             return
 
+        new_state_value = float(new_state.state)
+        old_state_value = float(old_state.state)
+
+        if new_state_value == old_state_value:
+            # No Change in the Values
+            return
+
         units = self._hass.states.get(sensor_id).attributes.get(
             ATTR_UNIT_OF_MEASUREMENT
         )
@@ -417,12 +424,8 @@ class SimulatedBatteryHandle:
                 "kWh" if units == UnitOfEnergy.KILO_WATT_HOUR else "Wh"
             )
 
-        new_state_value = float(new_state.state) * conversion_factor
-        old_state_value = float(old_state.state) * conversion_factor
-
-        if new_state_value == old_state_value:
-            # _LOGGER.debug("(%s) No change in readings .. ", self._name)
-            return
+        new_state_value *= conversion_factor
+        old_state_value *= conversion_factor
 
         reading_variance = new_state_value - old_state_value
 
@@ -505,7 +508,7 @@ class SimulatedBatteryHandle:
         time_since_last_battery_update = time_now - time_last_update
 
         _LOGGER.debug(
-            "(%s) Import: (%s) Export: (%s) .... Timing: %s = Now / %s = Last Update / %s Time (sec).",
+            "(%s) I:%s E:%s Now=%s, Update=%s, Time=%s sec.",
             self._name,
             import_amount,
             export_amount,
