@@ -1,5 +1,4 @@
 """Configuration flow for the Battery."""
-import logging
 import voluptuous as vol
 
 from homeassistant import config_entries
@@ -35,41 +34,41 @@ from .const import (
     FIXED_NUMERICAL_TARIFFS,
 )
 
-_LOGGER = logging.getLogger(__name__)
-
 
 @config_entries.HANDLERS.register(DOMAIN)
 class ExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Example config flow."""
+
     VERSION = 1
 
     def __init__(self):
+        """Init the Battery Setup."""
         self._data = None
 
     async def async_step_user(self, user_input):
         """Handle a flow initialized by the user."""
-        if user_input is not None:  # User Selected a Battery Option
-            if user_input[BATTERY_TYPE] == "Custom":
-                return await self.async_step_custom()
+        if user_input is None:
+            return self.async_show_form(
+                step_id="user",
+                data_schema=vol.Schema(
+                    {
+                        vol.Required(BATTERY_TYPE):
+                            vol.In(list(BATTERY_OPTIONS)),
+                    }
+                ),
+            )
 
-            # Register Battery Option
-            self._data = BATTERY_OPTIONS[user_input[BATTERY_TYPE]]
-            self._data[SETUP_TYPE] = CONFIG_FLOW
-            self._data[CONF_NAME] = f"{DOMAIN}: { user_input[BATTERY_TYPE]}"
-            await self.async_set_unique_id(self._data[CONF_NAME])
+        if user_input[BATTERY_TYPE] == "Custom":
+            return await self.async_step_custom()
 
-            self._abort_if_unique_id_configured()
-            return await self.async_step_metertype()
+        # Register Battery Option
+        self._data = BATTERY_OPTIONS[user_input[BATTERY_TYPE]]
+        self._data[SETUP_TYPE] = CONFIG_FLOW
+        self._data[CONF_NAME] = f"{DOMAIN}: { user_input[BATTERY_TYPE]}"
+        await self.async_set_unique_id(self._data[CONF_NAME])
 
-        return self.async_show_form(
-            step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(BATTERY_TYPE):
-                        vol.In(list(BATTERY_OPTIONS)),
-                }
-            ),
-        )
+        self._abort_if_unique_id_configured()
+        return await self.async_step_metertype()
 
     async def async_step_custom(self, user_input=None):
         """Initialize Custom Battery."""
@@ -157,20 +156,14 @@ class ExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 return await self.async_step_connecttariffsensors()
 
-        schema: dict = {}
-
-        # NOTE: Assumption that you'll always have the primary one.
-        schema[vol.Required(CONF_IMPORT_SENSOR)] = (
-            EntitySelector(
+        schema: dict = {
+            vol.Required(CONF_IMPORT_SENSOR): EntitySelector(
+                EntitySelectorConfig(device_class=SensorDeviceClass.ENERGY)
+            ),
+            vol.Required(CONF_EXPORT_SENSOR): EntitySelector(
                 EntitySelectorConfig(device_class=SensorDeviceClass.ENERGY)
             )
-        )
-
-        schema[vol.Required(CONF_EXPORT_SENSOR)] = (
-            EntitySelector(
-                EntitySelectorConfig(device_class=SensorDeviceClass.ENERGY)
-            )
-        )
+        }
 
         if self._data[METER_TYPE] in [
             TWO_IMPORT_ONE_EXPORT_METER,
@@ -195,7 +188,7 @@ class ExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_connecttariffsensors(self, user_input=None):
-        """Setup Tariff Sensors."""
+        """Configure Tariff Sensors."""
         if user_input is not None:
             self._data[CONF_ENERGY_IMPORT_TARIFF] = user_input[
                 CONF_ENERGY_IMPORT_TARIFF

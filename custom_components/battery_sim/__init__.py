@@ -37,6 +37,8 @@ from .const import (
     CONF_BATTERY_EFFICIENCY,
     CONF_BATTERY_MAX_CHARGE_RATE,
     CONF_BATTERY_MAX_DISCHARGE_RATE,
+    CONF_BATTERY_MAX_CHARGE_PERC,
+    CONF_BATTERY_MAX_DISCHARGE_PERC,
     CONF_BATTERY_SIZE,
     CONF_BATTERY,
     CONF_ENERGY_EXPORT_TARIFF,
@@ -81,8 +83,26 @@ BATTERY_CONFIG_SCHEMA = vol.Schema(
             vol.Optional(CONF_NAME): cv.string,
             vol.Required(CONF_BATTERY_SIZE): vol.All(float),
             vol.Required(CONF_BATTERY_MAX_DISCHARGE_RATE): vol.All(float),
-            vol.Optional(CONF_BATTERY_MAX_CHARGE_RATE, default=1.0): vol.All(float),
-            vol.Optional(CONF_BATTERY_EFFICIENCY, default=1.0): vol.All(float),
+            vol.Required(
+                CONF_BATTERY_MAX_CHARGE_PERC,
+                default=1.0
+            ):
+                vol.All(float),
+            vol.Required(
+                CONF_BATTERY_MAX_DISCHARGE_PERC,
+                default=1.0
+            ):
+                vol.All(float),
+            vol.Optional(
+                CONF_BATTERY_MAX_CHARGE_RATE,
+                default=1.0
+            ):
+                vol.All(float),
+            vol.Optional(
+                CONF_BATTERY_EFFICIENCY,
+                default=1.0
+            ):
+                vol.All(float),
         },
     )
 )
@@ -420,9 +440,6 @@ class SimulatedBatteryHandle:
             conversion_factor = (
                 1.0 if units == UnitOfEnergy.KILO_WATT_HOUR else 0.001
             )
-            unit_of_energy = (
-                "kWh" if units == UnitOfEnergy.KILO_WATT_HOUR else "Wh"
-            )
 
         new_state_value *= conversion_factor
         old_state_value *= conversion_factor
@@ -430,7 +447,7 @@ class SimulatedBatteryHandle:
         reading_variance = new_state_value - old_state_value
 
         _LOGGER.debug(
-            f"({self._name}) {sensor_id} {is_import}: {old_state_value} {unit_of_energy} => {new_state_value} {unit_of_energy} = Δ {reading_variance} {unit_of_energy}"
+            f"({self._name}) {sensor_id} {is_import}: Δ {reading_variance}"
         )
 
         if reading_variance < 0:

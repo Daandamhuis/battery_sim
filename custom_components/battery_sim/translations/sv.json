@@ -52,12 +52,12 @@
         "description": "For static tariffs it is best to create a helper entity with a fixed value. Currency is determined in home assistant location settings and is usually in base unit (e.g. euro) not subunit (e.g. cents)."
       },
       "chargeparameters": {
-        "title": "You can alter the Charge parameters for Max Charge and Dischardge in Percetages",
+        "title": "Maximum charge and discharge",
         "data": {
           "max_discharge_percentage": "The maximum percentage that the battery can be discharged before importing from the grid. (default = 0%)",
           "max_charge_percentage": "The maximum percentage that the battery can be charged before returning back to the grid. (default = 100%)"
         },
-        "description": "The value you enter is in percentages, so 0.9 =  90%"
+        "description": "You can alter the Charge parameters for the battery, this will prevent a full discharge and/or full charge. The value you enter is in percentages, so 0.9 =  90%"
       }
     }
   }

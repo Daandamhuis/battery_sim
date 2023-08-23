@@ -23,6 +23,8 @@ from .const import (
     CONF_BATTERY_EFFICIENCY,
     CONF_BATTERY_MAX_DISCHARGE_RATE,
     CONF_BATTERY_MAX_CHARGE_RATE,
+    CONF_BATTERY_MAX_DISCHARGE_PERC,
+    CONF_BATTERY_MAX_CHARGE_PERC,
     CONF_BATTERY_SIZE,
     ATTR_MONEY_SAVED,
     ATTR_MONEY_SAVED_IMPORT,
@@ -140,7 +142,35 @@ async def define_sensors(hass, handle):
         )
     )
 
-    sensors.append(DisplayOnlySensor(handle, BATTERY_CYCLES, None, None))
+    sensors.append(
+        DisplayOnlySensor(
+            handle,
+            BATTERY_CYCLES,
+            None,
+            None
+        )
+    )
+
+    if handle._max_charge_percentage is not None:
+        sensors.append(
+            DisplayOnlySensor(
+                handle,
+                CONF_BATTERY_MAX_CHARGE_PERC,
+                SensorDeviceClass.DECIMAL,
+                None
+            )
+        )
+
+    if handle._max_discharge_percentage is not None:
+        sensors.append(
+            DisplayOnlySensor(
+                handle,
+                CONF_BATTERY_MAX_DISCHARGE_PERC,
+                SensorDeviceClass.DECIMAL,
+                None
+            )
+        )
+
     if handle._import_tariff_sensor_id is not None:
         sensors.append(
             DisplayOnlySensor(
@@ -433,6 +463,10 @@ class SimulatedBattery(RestoreEntity, SensorEntity):
                 float(self.handle._max_discharge_rate),
             CONF_BATTERY_MAX_CHARGE_RATE:
                 float(self.handle._max_charge_rate),
+            CONF_BATTERY_MAX_DISCHARGE_PERC:
+                float(self.handle._max_discharge_percentage),
+            CONF_BATTERY_MAX_CHARGE_PERC:
+                float(self.handle._max_charge_percentage),
             ATTR_SOURCE_ID:
                 self.handle._export_sensor_id,
         }

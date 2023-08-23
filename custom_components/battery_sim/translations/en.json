@@ -24,7 +24,7 @@
           "max_charge_rate_kw": "Maximum charging rate in kW",
           "efficiency": "Round trip efficiency (0 to 1)"
         },
-        "description": "Set the speciffications of the battery. Please consider posting details of the battery you are simulating on our github so we can add it to the template list."
+        "description": "Set the specifications of the battery. Please consider posting details of the battery you are simulating on our github so we can add it to the template list."
       },
       "metertype": {
         "title": "Energy meter type",
@@ -54,12 +54,12 @@
         "description": "Currency is determined in home assistant location settings and is usually in base unit (e.g. euro) not subunit (e.g. cents) so tariff is usualy in the form 0.33 or similar."
       },
       "chargeparameters": {
-        "title": "You can alter the Charge parameters for Max Charge and Dischardge in Percetages",
+        "title": "Maximum charge and discharge",
         "data": {
           "max_discharge_percentage": "The maximum percentage that the battery can be discharged before importing from the grid. (default = 0%)",
           "max_charge_percentage": "The maximum percentage that the battery can be charged before returning back to the grid. (default = 100%)"
         },
-        "description": "The value you enter is in percentages, so 0.9 =  90%"
+        "description": "You can alter the Charge parameters for the battery, this will prevent a full discharge and/or full charge. The value you enter is in percentages, so 0.9 =  90%"
       }
     }
   }
