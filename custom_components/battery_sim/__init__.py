@@ -251,7 +251,10 @@ class SimulatedBatteryHandle:
             BATTERY_CYCLES: 0.0,
         }
 
-        async_at_start(self._hass, self.async_source_tracking)
+        async_at_start(
+            self._hass,
+            self.async_source_tracking
+        )
 
         async_dispatcher_connect(
             self._hass,
@@ -269,12 +272,6 @@ class SimulatedBatteryHandle:
             self._hass,
             f"{self._name}-{MESSAGE_TYPE_BATTERY_RESET_EXP}",
             self.reset_sim_sensor,
-        )
-
-        async_dispatcher_connect(
-            self._hass,
-            f"{self._name}-{MESSAGE_TYPE_BATTERY_UPDATE}",
-            self.update_battery,
         )
 
     def async_reset_battery(self):
@@ -565,15 +562,7 @@ class SimulatedBatteryHandle:
             else:
                 self._sensors[BATTERY_MODE] = MODE_DISCHARGING
 
-        if self._switches[PAUSE_BATTERY]:
-            _LOGGER.debug("(%s) Battery paused.", self._name)
-            amount_to_charge = 0.0
-            amount_to_discharge = 0.0
-            net_export = export_amount
-            net_import = import_amount
-            self._sensors[BATTERY_MODE] = MODE_IDLE
-
-        if self._switches[OVERIDE_CHARGING]:
+        elif self._switches[OVERIDE_CHARGING]:
             _LOGGER.debug("(%s) Battery overide charging.", self._name)
             amount_to_charge = min(max_charge, available_capacity_to_charge)
             amount_to_discharge = 0.0
@@ -587,7 +576,7 @@ class SimulatedBatteryHandle:
             self._charging = True
             self._sensors[BATTERY_MODE] = MODE_FORCE_CHARGING
 
-        if self._switches[FORCE_DISCHARGE]:
+        elif self._switches[FORCE_DISCHARGE]:
             _LOGGER.debug("(%s) Battery forced discharging.", self._name)
             amount_to_charge = 0.0
             amount_to_discharge = (
@@ -599,7 +588,7 @@ class SimulatedBatteryHandle:
             net_import = max(import_amount - amount_to_discharge, 0)
             self._sensors[BATTERY_MODE] = MODE_FORCE_DISCHARGING
 
-        if self._switches[CHARGE_ONLY]:
+        elif self._switches[CHARGE_ONLY]:
             _LOGGER.debug("(%s) Battery charge only mode.", self._name)
             amount_to_charge: float = min(
                 export_amount, max_charge, available_capacity_to_charge
@@ -612,6 +601,14 @@ class SimulatedBatteryHandle:
                 self._sensors[BATTERY_MODE] = MODE_CHARGING
             else:
                 self._sensors[BATTERY_MODE] = MODE_IDLE
+
+        elif self._switches[PAUSE_BATTERY]:
+            _LOGGER.debug("(%s) Battery paused.", self._name)
+            amount_to_charge = 0.0
+            amount_to_discharge = 0.0
+            net_export = export_amount
+            net_import = import_amount
+            self._sensors[BATTERY_MODE] = MODE_IDLE
 
         current_import_tariff = self.get_tariff_information(
             self._import_tariff_sensor_id
