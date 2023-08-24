@@ -4,7 +4,8 @@ import time
 
 import voluptuous as vol
 
-from homeassistant.core import callback
+from homeassistant.core import callback, HomeAssistant
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import discovery
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.start import async_at_start
@@ -166,6 +167,11 @@ async def async_setup_entry(hass, entry) -> bool:
             hass.config_entries.async_forward_entry_setup(entry, platform)
         )
     return True
+
+
+async def async_unload_entry(hass, entry):
+    """Unload a config entry."""
+    return await hass.config_entries.async_unload_platforms(entry, BATTERY_PLATFORMS)
 
 
 class SimulatedBatteryHandle:

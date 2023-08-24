@@ -1,10 +1,13 @@
 """Constants for the battery_sim component."""
+from homeassistant.const import (
+    Platform
+)    
 
 DOMAIN = "battery_sim"
 
 BATTERY_TYPE = "battery"
 
-BATTERY_PLATFORMS = ["sensor", "switch", "button"]
+BATTERY_PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SWITCH]
 
 MESSAGE_TYPE_GENERAL = "BatteryResetMessage"
 MESSAGE_TYPE_BATTERY_RESET_IMP = "BatteryResetImportSim"
